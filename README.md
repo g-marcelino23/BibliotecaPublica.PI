@@ -35,17 +35,20 @@ Bem-vindo à **Biblioteca Pública Online**, um sistema desenvolvido para oferec
 
 ## 🗓️ Cronograma de Entregas
 
-| Data      | Funcionalidade              | Responsável |
-|-----------|-----------------------------|-------------|
-| 23/04     | Estrutura do Projeto        | Gabriel     |
-| 30/04     | Tela de Login e Cadastro    | Lucas       |
-| 07/05     | Dashboard do Usuário        | Rodrigo     |
-| 14/05     | Cadastro de Livros          | Gabriel     |
-| 21/05     | Listagem e Filtro de Livros | Lucas       |
-| 28/05     | Leitor de Livros Online     | Rodrigo     |
-| 04/06     | Funcionalidade de Download  | Gabriel     |
-| 11/06     | Página de Perfil            | Lucas       |
-| 18/06     | Testes e Deploy             | Rodrigo     |
+| Funcionalidade                                                                 | Descrição                                                                                  | Membro(os)              | Data    |
+|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|--------------------------|---------|
+| Criação do repositório e instância do projeto                                  | Criamos o repositório do projeto e configuramos as ferramentas do projeto.                | Gabriel, Rodrigo e Lucas | 16/04   |
+| Tela de Cadastro e CRUD dos livros                                             | Backend, frontend para o cadastro de livros                                                | Gabriel, Rodrigo e Lucas | 23/04   |
+| Integração via Axios e Conexão com banco de dados                              | Integrar o backend com o frontend e fazer a conexão com o banco                            | Gabriel, Rodrigo e Lucas | 27/04   |
+| Dashboard do Usuário / Melhorar tela do cadastro / CRUD do usuário             | Página inicial pós-login com navegação para livros e perfil                                | Gabriel, Rodrigo e Lucas | 04/05   |
+| Tela de Login e Autenticação JWT                                               | Criar as páginas de login com autenticação via JWT                                         | Gabriel, Rodrigo e Lucas | 11/05   |
+| Download de Livros                                                             | Adicionar botão para download dos arquivos de livros                                       | Gabriel, Rodrigo e Lucas | 18/05   |
+| Perfil do Usuário                                                              | Exibir dados do usuário e histórico de leituras/downloads                                  | Gabriel, Rodrigo e Lucas | 25/05   |
+| Revisão do frontend                                                            | Etapa para melhorar a UX do projeto.                                                       | Gabriel, Rodrigo e Lucas | 01/06   |
+| Testes Finais                                                                  | Corrigir bugs, aplicar testes                                                              | Gabriel, Rodrigo e Lucas | 08/06   |
+| Entrega Final                                                                  | Entrega final do projeto                                                                   | Gabriel, Rodrigo e Lucas | 15/06   |
+| Apresentação Final                                                             | Apresentação final                                                                         | Gabriel, Rodrigo e Lucas | 18/06   |
+
 
 ---
 
