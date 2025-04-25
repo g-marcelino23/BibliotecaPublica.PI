@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/livro")
+@CrossOrigin(origins = "*")
 public class LivroController {
     @Autowired
     LivroService livroService;
