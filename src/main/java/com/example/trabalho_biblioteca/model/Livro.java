@@ -12,14 +12,14 @@ public class Livro {
     @Column(name = "titulo", length = 75)
     private String titulo;
     @Column(name = "autor", length = 75, nullable = false)
-    private String Autor;
+    private String autor;
     private String descricao;
 
     public Livro(){}
 
     public Livro(String titulo, String autor, String descricao) {
         this.titulo = titulo;
-        Autor = autor;
+        this.autor = autor;
         this.descricao = descricao;
     }
 
@@ -32,11 +32,11 @@ public class Livro {
     }
 
     public String getAutor() {
-        return Autor;
+        return autor;
     }
 
     public void setAutor(String autor) {
-        Autor = autor;
+        this.autor = autor;
     }
 
     public String getDescricao() {
