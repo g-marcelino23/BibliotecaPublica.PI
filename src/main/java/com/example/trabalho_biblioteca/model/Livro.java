@@ -13,14 +13,12 @@ public class Livro {
     private String titulo;
     @Column(name = "autor", length = 75, nullable = false)
     private String Autor;
-    private String descricao;
 
     public Livro(){}
 
-    public Livro(String titulo, String autor, String descricao) {
+    public Livro(String titulo, String autor) {
         this.titulo = titulo;
         Autor = autor;
-        this.descricao = descricao;
     }
 
     public String getTitulo() {
@@ -39,13 +37,6 @@ public class Livro {
         Autor = autor;
     }
 
-    public String getDescricao() {
-        return descricao;
-    }
-
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
-    }
 
     public long getId() {
         return id;

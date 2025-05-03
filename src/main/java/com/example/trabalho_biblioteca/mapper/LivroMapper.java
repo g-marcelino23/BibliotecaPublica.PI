@@ -8,11 +8,10 @@ public class LivroMapper {
         Livro livro = new Livro();
         livro.setAutor(livroDto.autor());
         livro.setTitulo(livroDto.titulo());
-        livro.setDescricao(livroDto.descricao());
         return livro;
     }
 
     public static LivroDTO livroParaDto(Livro livro){
-        return new LivroDTO(livro.getTitulo(),livro.getAutor(),livro.getDescricao());
+        return new LivroDTO(livro.getTitulo(),livro.getAutor());
     }
 }

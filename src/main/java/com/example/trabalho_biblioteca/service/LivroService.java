@@ -30,7 +30,6 @@ public class LivroService {
         Livro livroAntigo = livroRepository.findById(id).orElseThrow(() -> new RuntimeException("Não existe livro com o id passado"));
         livroAntigo.setAutor(novoLivro.autor());
         livroAntigo.setTitulo(novoLivro.titulo());
-        livroAntigo.setDescricao(novoLivro.descricao());
         return ResponseEntity.ok(livroRepository.save(livroAntigo));
     }
 
