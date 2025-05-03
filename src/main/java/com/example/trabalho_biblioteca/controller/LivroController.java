@@ -11,27 +11,28 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/livro")
+@CrossOrigin(origins = "*")
 public class LivroController {
     @Autowired
     LivroService livroService;
 
-    @PostMapping()
+    @PostMapping("/cadastrar")
     public ResponseEntity<Livro> postLivro(@RequestBody LivroDTO livroDTO) {
         return livroService.salvarLivro(livroDTO);
     }
 
-    @DeleteMapping()
-    public String deletarLivro(@RequestParam Long id) {
+    @DeleteMapping("/deletar/{id}")
+    public String deletarLivro(@PathVariable Long id) {
         return livroService.deletarLivro(id);
     }
 
-    @PutMapping()
-    public ResponseEntity<Livro> atualizarLivro(@RequestParam Long id, @RequestBody LivroDTO livroDTO){
+    @PutMapping("/alterar/{id}")
+    public ResponseEntity<Livro> atualizarLivro(@PathVariable Long id, @RequestBody LivroDTO livroDTO){
         return livroService.atualizarLivro(livroDTO, id);
     }
 
     @GetMapping("/byId/{id}")
-    public ResponseEntity<Livro> findById(@PathVariable long id){
+    public ResponseEntity<Livro> findById(@PathVariable Long id){
         return livroService.findById(id);
     }
 
