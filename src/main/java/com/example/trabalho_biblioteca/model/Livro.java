@@ -9,11 +9,12 @@ public class Livro {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-    @Column(name = "titulo", length = 75)
+    @Column(name = "titulo", length = 75, nullable = false)
     private String titulo;
     @Column(name = "autor", length = 75, nullable = false)
     private String autor;
     private String descricao;
+    @Column(name = "caminho_arquivo", nullable = false)
     private String caminhoArquivo;
 
     public Livro(){}

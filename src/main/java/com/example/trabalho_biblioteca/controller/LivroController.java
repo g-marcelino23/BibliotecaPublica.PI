@@ -5,6 +5,7 @@ import com.example.trabalho_biblioteca.model.Livro;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.example.trabalho_biblioteca.service.LivroService;
@@ -21,7 +22,7 @@ public class LivroController {
     LivroService livroService;
 
     @PostMapping("/cadastrar")
-    public Livro postLivro( @RequestParam String descricao,@RequestParam String titulo, @RequestParam String autor, @RequestParam MultipartFile file) {
+    public Livro postLivro( @RequestParam("descricao") String descricao,@RequestParam("titulo") String titulo, @RequestParam("autor") String autor, @RequestParam("pdf") MultipartFile file) {
         return livroService.salvarLivro(file, autor, titulo, descricao);
     }
 
@@ -30,10 +31,16 @@ public class LivroController {
 //        return livroService.deletarLivro(id);
 //    }
 
-    @PutMapping("/alterar/{id}")
-    public ResponseEntity<Livro> atualizarLivro(@PathVariable Long id, @RequestBody LivroDTO livroDTO){
-        return livroService.atualizarLivro(livroDTO, id);
-    }
+@PutMapping("/alterar/{id}")
+public ResponseEntity<Livro> atualizarLivro(
+        @RequestParam(value = "pdf", required = false) MultipartFile pdf,
+        @RequestParam("titulo") String titulo,
+        @RequestParam("autor") String autor,
+        @RequestParam("descricao") String descricao,
+        @PathVariable Long id) {
+    return livroService.atualizarLivro(pdf, titulo, autor, descricao, id);
+}
+
 
     @GetMapping("/byId/{id}")
     public ResponseEntity<Livro> findById(@PathVariable Long id){
@@ -50,13 +57,19 @@ public class LivroController {
         Livro livro = livroService.findByTitulo(titulo);
         Resource file = livroService.downloadByName(titulo);
 
+        String nomeArquivo = livro.getTitulo();
+        if (!nomeArquivo.toLowerCase().endsWith(".pdf")) {
+            nomeArquivo += ".pdf";
+    }
+
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + livro.getTitulo() + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + nomeArquivo + "\"")
                 .body(file);
     }
 
-    @DeleteMapping("/deletar/{titulo}")
-    public void deleteByTitulo(@PathVariable String titulo){
-        livroService.deletarLivroByTitulo(titulo);
+    @DeleteMapping("/deletar/{id}")
+    public void deleteLivro(@PathVariable Long id){
+        livroService.deletarLivro(id);
     }
 }
