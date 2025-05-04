@@ -14,13 +14,15 @@ public class Livro {
     @Column(name = "autor", length = 75, nullable = false)
     private String autor;
     private String descricao;
+    private String caminhoArquivo;
 
     public Livro(){}
 
-    public Livro(String titulo, String autor, String descricao) {
+    public Livro(String titulo, String autor, String descricao, String caminhoArquivo) {
         this.titulo = titulo;
         this.autor = autor;
         this.descricao = descricao;
+        this.caminhoArquivo = caminhoArquivo;
     }
 
     public String getTitulo() {
@@ -53,5 +55,13 @@ public class Livro {
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getCaminhoArquivo() {
+        return caminhoArquivo;
+    }
+
+    public void setCaminhoArquivo(String caminhoArquivo) {
+        this.caminhoArquivo = caminhoArquivo;
     }
 }
