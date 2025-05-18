@@ -27,6 +27,16 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
         var login = tokenService.validateToken(token);
+        String header = request.getHeader("Authorization");
+        System.out.println("Authorization Header: " + header);
+
+        if(header == null || !header.startsWith("Bearer ")) {
+            System.out.println("Token não encontrado ou mal formatado");
+        } else {
+            String token1 = header.substring(7);
+            System.out.println("Token extraído: " + token1);
+            // Aqui você pode tentar validar o token e logar sucesso/falha
+        }
 
         if(login != null){
             User user = userRepository.findByEmail(login).orElseThrow(() -> new RuntimeException("User Not Found"));
