@@ -16,6 +16,8 @@ public class Livro {
     private String descricao;
     @Column(name = "caminho_arquivo", nullable = false)
     private String caminhoArquivo;
+    @Column(name = "caminho_capa",nullable = false)
+    private String caminhoCapa;
 
     public Livro(){}
 
@@ -64,5 +66,13 @@ public class Livro {
 
     public void setCaminhoArquivo(String caminhoArquivo) {
         this.caminhoArquivo = caminhoArquivo;
+    }
+
+    public String getCaminhoCapa() {
+        return caminhoCapa;
+    }
+
+    public void setCaminhoCapa(String caminhoCapa) {
+        this.caminhoCapa = caminhoCapa;
     }
 }

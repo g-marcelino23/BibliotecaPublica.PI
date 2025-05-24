@@ -22,8 +22,8 @@ public class LivroController {
     LivroService livroService;
 
     @PostMapping("/cadastrar")
-    public Livro postLivro( @RequestParam("descricao") String descricao,@RequestParam("titulo") String titulo, @RequestParam("autor") String autor, @RequestParam("pdf") MultipartFile file) {
-        return livroService.salvarLivro(file, autor, titulo, descricao);
+    public Livro postLivro( @RequestParam("descricao") String descricao,@RequestParam("titulo") String titulo, @RequestParam("autor") String autor, @RequestParam("pdf") MultipartFile file, @RequestParam("capa") MultipartFile capa) {
+        return livroService.salvarLivro(file, capa, autor, titulo, descricao);
     }
 
 //    @DeleteMapping("/deletar/{id}")
@@ -34,11 +34,12 @@ public class LivroController {
 @PutMapping("/alterar/{id}")
 public ResponseEntity<Livro> atualizarLivro(
         @RequestParam(value = "pdf", required = false) MultipartFile pdf,
+        @RequestParam(value = "capa", required = false) MultipartFile capa,
         @RequestParam("titulo") String titulo,
         @RequestParam("autor") String autor,
         @RequestParam("descricao") String descricao,
         @PathVariable Long id) {
-    return livroService.atualizarLivro(pdf, titulo, autor, descricao, id);
+    return livroService.atualizarLivro(pdf, capa, titulo, autor, descricao, id);
 }
 
 

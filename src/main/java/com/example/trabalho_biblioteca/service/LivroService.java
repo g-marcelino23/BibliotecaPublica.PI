@@ -32,50 +32,47 @@ import java.util.UUID;
 public class LivroService {
     @Autowired
     LivroRepository livroRepository;
-    @Value("${storage.path}")
+    @Value("${storage.pdf.path}")
     private String storagePath;
+    @Value("${storage.capas.path}")
+    private String capasPath;
     private Path rootLocation;
+    private Path capasLocation;
     @PostConstruct
     public void init(){
         this.rootLocation = Paths.get(storagePath);
+        this.capasLocation = Paths.get(capasPath);
         try{
             Files.createDirectories(rootLocation);
+            Files.createDirectories(capasLocation);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    // public Livro salvarLivro(MultipartFile file, String autor, String titulo, String descricao) {
-    //    String nomeArquivo = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
-
-    //    try{
-    //         Files.copy(file.getInputStream(), this.rootLocation.resolve(nomeArquivo), StandardCopyOption.REPLACE_EXISTING);
-    //     } catch (IOException e) {
-    //         throw new RuntimeException(e);
-    //     }
-
-    //    Livro livro = new Livro();
-    //    livro.setTitulo(titulo);
-    //    livro.setAutor(autor);
-    //    livro.setDescricao(descricao);
-    //    livro.setCaminhoArquivo(nomeArquivo);
-    //    livroRepository.save(livro);
-
-    //     return livro;
-    // }
-
-    public Livro salvarLivro(MultipartFile file, String autor, String titulo, String descricao) {
+    public Livro salvarLivro(MultipartFile file, MultipartFile capa, String autor, String titulo, String descricao) {
         // Verificando se o arquivo é um PDF
         String tipoArquivo = file.getContentType();
         if (!"application/pdf".equals(tipoArquivo)) {
             throw new IllegalArgumentException("O arquivo precisa ser um PDF.");
         }
-    
-        // Gerando nome único para o arquivo
+
+        //verificando se o arquivo é uma imagem
+        String tipoCapa = capa.getContentType();
+        if(!"image/jpeg".equals(tipoCapa)&& !"image/png".equals(tipoCapa)){
+            throw new IllegalArgumentException("A capa precisa ser um png ou jpeg");
+        }
+        // Gerando nome único para o arquivo pdf
         String nomeArquivo = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
+
+        //Gerando um nome único para a capa do livro
+        String nomeCapa = UUID.randomUUID().toString() + "-" + capa.getOriginalFilename();
     
         // Definindo o caminho completo onde o arquivo será salvo
         Path destinoArquivo = this.rootLocation.resolve(nomeArquivo);
+
+        // Definindo o caminho completo de onde a capa está
+        Path destinoCapa = this.capasLocation.resolve(nomeCapa);
     
         try {
             // Verificando se o arquivo não é nulo e transferindo para o diretório de armazenamento
@@ -88,6 +85,20 @@ public class LivroService {
         } catch (IOException e) {
             throw new RuntimeException("Erro ao salvar o arquivo: " + nomeArquivo, e);
         }
+
+        try {
+            // Verificando se a capa não é nula e transferindo para o diretório de armazenamento
+            if (capa != null && !capa.isEmpty()) {
+                // Copia o conteúdo da capa para o diretório
+                Files.copy(capa.getInputStream(), destinoCapa, StandardCopyOption.REPLACE_EXISTING);
+            } else {
+                throw new IllegalArgumentException("Capa não foi salva corretamente.");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao salvar a capa: " + nomeCapa, e);
+        }
+
+
     
         // Criando o objeto Livro e atribuindo as informações
         Livro livro = new Livro();
@@ -95,6 +106,7 @@ public class LivroService {
         livro.setAutor(autor);
         livro.setDescricao(descricao);
         livro.setCaminhoArquivo(nomeArquivo);  // Salvando o nome do arquivo no banco
+        livro.setCaminhoCapa(nomeCapa);
     
         // Salvando o livro no repositório
         livroRepository.save(livro);
@@ -113,12 +125,20 @@ public class LivroService {
                 arquivo.delete();
             }
         }
+        // Excluir a capa do diretório de capas
+        if (livro.getCaminhoCapa() != null) {
+            File capa = new File(capasPath + "/" + livro.getCaminhoCapa());
+            if (capa.exists()) {
+                capa.delete();
+            }
+        }
     
         livroRepository.delete(livro);
         return "Livro de id = " + id + " foi deletado!";
     }
 
     public ResponseEntity<Livro> atualizarLivro(@RequestParam(value = "pdf", required = false) MultipartFile pdf,
+                                            @RequestParam(value = "capa", required = false) MultipartFile capa,
                                             @RequestParam("titulo") String titulo,
                                             @RequestParam("autor") String autor,
                                             @RequestParam("descricao") String descricao,
@@ -141,6 +161,25 @@ public class LivroService {
             }
 
             livroAntigo.setCaminhoArquivo(nomeArquivo);
+        }
+
+
+        if (capa != null && !capa.isEmpty()) {
+            // Excluir a capa antiga, se necessário
+            File capaAntiga = new File(capasPath + "/" + livroAntigo.getCaminhoCapa());
+            if (capaAntiga.exists()) {
+                capaAntiga.delete();
+            }
+
+            // Salvar a nova capa
+            String nomeCapa = UUID.randomUUID().toString() + "-" + capa.getOriginalFilename();
+            try {
+                Files.copy(capa.getInputStream(), Paths.get(capasPath).resolve(nomeCapa), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            livroAntigo.setCaminhoCapa(nomeCapa);
         }
 
         livroAntigo.setTitulo(titulo);
