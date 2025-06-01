@@ -38,8 +38,7 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.GET, "/api/livro/download/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/livro/capa/**").permitAll()
 
-
-                .anyRequest().authenticated()
+            .anyRequest().authenticated()
         )
         .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
