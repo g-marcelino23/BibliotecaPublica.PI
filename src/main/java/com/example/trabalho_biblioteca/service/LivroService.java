@@ -1,52 +1,52 @@
 package com.example.trabalho_biblioteca.service;
 
-import com.example.trabalho_biblioteca.dto.LivroDTO;
-import com.example.trabalho_biblioteca.mapper.LivroMapper;
-import com.example.trabalho_biblioteca.model.Livro;
-import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+// Adicione estas importações:
+import com.example.trabalho_biblioteca.model.Livro; // Para a classe Livro
+import com.example.trabalho_biblioteca.repository.LivroRepository; // Para LivroRepository
+import jakarta.annotation.PostConstruct; // Para @PostConstruct
+import org.springframework.beans.factory.annotation.Autowired; // Para @Autowired
+import org.springframework.beans.factory.annotation.Value; // Para @Value
+import org.springframework.core.io.Resource; // Para Resource
+import org.springframework.core.io.UrlResource; // Para UrlResource
+import org.springframework.http.ResponseEntity; // Para ResponseEntity
+import org.springframework.stereotype.Service; // Para @Service
+import org.springframework.web.bind.annotation.PathVariable; // Para @PathVariable (se usado no service, senão remova)
+import org.springframework.web.bind.annotation.RequestParam; // Para @RequestParam (se usado no service, senão remova)
+import org.springframework.web.multipart.MultipartFile; // Para MultipartFile
 
-import com.example.trabalho_biblioteca.repository.LivroRepository;
-
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.UUID;
+import java.io.File; // Para a classe File (usada na sua lógica de deletar)
+import java.io.IOException; // Para IOException
+import java.net.MalformedURLException; // Para MalformedURLException
+import java.nio.file.Files; // Para a classe Files
+import java.nio.file.Path; // Para a classe Path
+import java.nio.file.Paths; // Para a classe Paths
+import java.nio.file.StandardCopyOption; // Para StandardCopyOption
+import java.util.List; // Para List
+import java.util.UUID; // Para UUID
 
 @Service
 public class LivroService {
     @Autowired
     LivroRepository livroRepository;
+
     @Value("${storage.pdf.path}")
     private String storagePath;
+
     @Value("${storage.capas.path}")
-    private String capasPath;
-    private Path rootLocation;
-    private Path capasLocation;
+    private String capasPath; // Caminho para o diretório das capas
+
+    private Path rootLocation; // Para PDFs
+    private Path capasLocation; // Para Capas
+
     @PostConstruct
     public void init(){
         this.rootLocation = Paths.get(storagePath);
-        this.capasLocation = Paths.get(capasPath);
+        this.capasLocation = Paths.get(capasPath); // Inicializa o caminho das capas
         try{
             Files.createDirectories(rootLocation);
-            Files.createDirectories(capasLocation);
+            Files.createDirectories(capasLocation); // Cria o diretório das capas se não existir
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Não foi possível inicializar os diretórios de armazenamento", e);
         }
     }
 
@@ -59,127 +59,150 @@ public class LivroService {
 
         //verificando se o arquivo é uma imagem
         String tipoCapa = capa.getContentType();
-        if(!"image/jpeg".equals(tipoCapa)&& !"image/png".equals(tipoCapa)){
-            throw new IllegalArgumentException("A capa precisa ser um png ou jpeg");
+        if(tipoCapa == null || (!tipoCapa.equals("image/jpeg") && !tipoCapa.equals("image/png"))){
+            throw new IllegalArgumentException("A capa precisa ser um PNG ou JPEG.");
         }
         // Gerando nome único para o arquivo pdf
-        String nomeArquivo = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
+        String nomeArquivoPdf = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
 
         //Gerando um nome único para a capa do livro
-        String nomeCapa = UUID.randomUUID().toString() + "-" + capa.getOriginalFilename();
-    
-        // Definindo o caminho completo onde o arquivo será salvo
-        Path destinoArquivo = this.rootLocation.resolve(nomeArquivo);
+        String nomeArquivoCapa = UUID.randomUUID().toString() + "-" + capa.getOriginalFilename();
 
-        // Definindo o caminho completo de onde a capa está
-        Path destinoCapa = this.capasLocation.resolve(nomeCapa);
-    
+        // Definindo o caminho completo onde o arquivo PDF será salvo
+        Path destinoArquivoPdf = this.rootLocation.resolve(nomeArquivoPdf);
+
+        // Definindo o caminho completo de onde a capa será salva
+        Path destinoArquivoCapa = this.capasLocation.resolve(nomeArquivoCapa);
+
         try {
-            // Verificando se o arquivo não é nulo e transferindo para o diretório de armazenamento
+            // Verificando se o arquivo PDF não é nulo e transferindo para o diretório de armazenamento
             if (file != null && !file.isEmpty()) {
-                // Copia o conteúdo do PDF para o diretório
-                Files.copy(file.getInputStream(), destinoArquivo, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(file.getInputStream(), destinoArquivoPdf, StandardCopyOption.REPLACE_EXISTING);
             } else {
                 throw new IllegalArgumentException("Arquivo PDF não foi enviado corretamente.");
             }
         } catch (IOException e) {
-            throw new RuntimeException("Erro ao salvar o arquivo: " + nomeArquivo, e);
+            throw new RuntimeException("Erro ao salvar o arquivo PDF: " + nomeArquivoPdf, e);
         }
 
         try {
             // Verificando se a capa não é nula e transferindo para o diretório de armazenamento
             if (capa != null && !capa.isEmpty()) {
-                // Copia o conteúdo da capa para o diretório
-                Files.copy(capa.getInputStream(), destinoCapa, StandardCopyOption.REPLACE_EXISTING);
+                Files.copy(capa.getInputStream(), destinoArquivoCapa, StandardCopyOption.REPLACE_EXISTING);
             } else {
-                throw new IllegalArgumentException("Capa não foi salva corretamente.");
+                throw new IllegalArgumentException("Capa não foi enviada corretamente.");
             }
         } catch (IOException e) {
-            throw new RuntimeException("Erro ao salvar a capa: " + nomeCapa, e);
+            throw new RuntimeException("Erro ao salvar a capa: " + nomeArquivoCapa, e);
         }
 
-
-    
         // Criando o objeto Livro e atribuindo as informações
         Livro livro = new Livro();
         livro.setTitulo(titulo);
         livro.setAutor(autor);
         livro.setDescricao(descricao);
-        livro.setCaminhoArquivo(nomeArquivo);  // Salvando o nome do arquivo no banco
-        livro.setCaminhoCapa(nomeCapa);
-    
+        livro.setCaminhoArquivo(nomeArquivoPdf);  // Salvando o nome do arquivo PDF no banco
+        livro.setCaminhoCapa(nomeArquivoCapa); // Salvando o nome do arquivo da capa no banco
+
         // Salvando o livro no repositório
         livroRepository.save(livro);
-    
+
         return livro;
     }
 
+    // ... (métodos deletarLivro, atualizarLivro, findById, findByTitulo, findAll permanecem os mesmos) ...
     public String deletarLivro(Long id){
         Livro livro = livroRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Não existe livro com esse id"));
-    
-        // Excluir o arquivo físico
-        if (livro.getCaminhoArquivo() != null) {
-            File arquivo = new File(storagePath + "/" + livro.getCaminhoArquivo());
-            if (arquivo.exists()) {
-                arquivo.delete();
+                .orElseThrow(() -> new RuntimeException("Não existe livro com esse id"));
+
+        // Excluir o arquivo físico PDF
+        if (livro.getCaminhoArquivo() != null && !livro.getCaminhoArquivo().isEmpty()) {
+            try {
+                Path pdfPath = this.rootLocation.resolve(livro.getCaminhoArquivo()).normalize();
+                Files.deleteIfExists(pdfPath);
+            } catch (IOException e) {
+                // Logar o erro, mas continuar para excluir do banco de dados
+                System.err.println("Erro ao deletar arquivo PDF físico: " + livro.getCaminhoArquivo() + " - " + e.getMessage());
             }
         }
         // Excluir a capa do diretório de capas
-        if (livro.getCaminhoCapa() != null) {
-            File capa = new File(capasPath + "/" + livro.getCaminhoCapa());
-            if (capa.exists()) {
-                capa.delete();
+        if (livro.getCaminhoCapa() != null && !livro.getCaminhoCapa().isEmpty()) {
+            try {
+                Path capaPath = this.capasLocation.resolve(livro.getCaminhoCapa()).normalize();
+                Files.deleteIfExists(capaPath);
+            } catch (IOException e) {
+                // Logar o erro, mas continuar para excluir do banco de dados
+                System.err.println("Erro ao deletar arquivo de capa físico: " + livro.getCaminhoCapa() + " - " + e.getMessage());
             }
         }
-    
+
         livroRepository.delete(livro);
         return "Livro de id = " + id + " foi deletado!";
     }
 
     public ResponseEntity<Livro> atualizarLivro(@RequestParam(value = "pdf", required = false) MultipartFile pdf,
-                                            @RequestParam(value = "capa", required = false) MultipartFile capa,
-                                            @RequestParam("titulo") String titulo,
-                                            @RequestParam("autor") String autor,
-                                            @RequestParam("descricao") String descricao,
-                                            @PathVariable Long id) {
+                                                @RequestParam(value = "capa", required = false) MultipartFile capa,
+                                                @RequestParam("titulo") String titulo,
+                                                @RequestParam("autor") String autor,
+                                                @RequestParam("descricao") String descricao,
+                                                @PathVariable Long id) {
         Livro livroAntigo = livroRepository.findById(id).orElseThrow(() -> new RuntimeException("Não existe livro com o id passado"));
 
+        // Atualiza o arquivo PDF se um novo foi enviado
         if (pdf != null && !pdf.isEmpty()) {
-            // Excluir o arquivo antigo, se necessário
-            File arquivoAntigo = new File(storagePath + "/" + livroAntigo.getCaminhoArquivo());
-            if (arquivoAntigo.exists()) {
-                arquivoAntigo.delete();
+            // Valida o tipo do novo PDF
+            String tipoNovoPdf = pdf.getContentType();
+            if (!"application/pdf".equals(tipoNovoPdf)) {
+                throw new IllegalArgumentException("O novo arquivo precisa ser um PDF.");
             }
 
-            // Salvar o novo arquivo
-            String nomeArquivo = UUID.randomUUID().toString() + "-" + pdf.getOriginalFilename();
+            // Excluir o arquivo PDF antigo
+            if (livroAntigo.getCaminhoArquivo() != null && !livroAntigo.getCaminhoArquivo().isEmpty()) {
+                try {
+                    Path pdfAntigoPath = this.rootLocation.resolve(livroAntigo.getCaminhoArquivo()).normalize();
+                    Files.deleteIfExists(pdfAntigoPath);
+                } catch (IOException e) {
+                    System.err.println("Erro ao deletar arquivo PDF antigo: " + livroAntigo.getCaminhoArquivo() + " - " + e.getMessage());
+                }
+            }
+
+            // Salvar o novo arquivo PDF
+            String nomeNovoPdf = UUID.randomUUID().toString() + "-" + pdf.getOriginalFilename();
             try {
-                Files.copy(pdf.getInputStream(), Paths.get(storagePath).resolve(nomeArquivo), StandardCopyOption.REPLACE_EXISTING);
+                Path destinoNovoPdf = this.rootLocation.resolve(nomeNovoPdf);
+                Files.copy(pdf.getInputStream(), destinoNovoPdf, StandardCopyOption.REPLACE_EXISTING);
+                livroAntigo.setCaminhoArquivo(nomeNovoPdf);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Erro ao salvar o novo arquivo PDF: " + nomeNovoPdf, e);
             }
-
-            livroAntigo.setCaminhoArquivo(nomeArquivo);
         }
 
-
+        // Atualiza a capa se uma nova foi enviada
         if (capa != null && !capa.isEmpty()) {
-            // Excluir a capa antiga, se necessário
-            File capaAntiga = new File(capasPath + "/" + livroAntigo.getCaminhoCapa());
-            if (capaAntiga.exists()) {
-                capaAntiga.delete();
+            // Valida o tipo da nova capa
+            String tipoNovaCapa = capa.getContentType();
+            if (tipoNovaCapa == null || (!tipoNovaCapa.equals("image/jpeg") && !tipoNovaCapa.equals("image/png"))) {
+                throw new IllegalArgumentException("A nova capa precisa ser um PNG ou JPEG.");
+            }
+            // Excluir a capa antiga
+            if (livroAntigo.getCaminhoCapa() != null && !livroAntigo.getCaminhoCapa().isEmpty()) {
+                try {
+                    Path capaAntigaPath = this.capasLocation.resolve(livroAntigo.getCaminhoCapa()).normalize();
+                    Files.deleteIfExists(capaAntigaPath);
+                } catch (IOException e) {
+                    System.err.println("Erro ao deletar arquivo de capa antigo: " + livroAntigo.getCaminhoCapa() + " - " + e.getMessage());
+                }
             }
 
             // Salvar a nova capa
-            String nomeCapa = UUID.randomUUID().toString() + "-" + capa.getOriginalFilename();
+            String nomeNovaCapa = UUID.randomUUID().toString() + "-" + capa.getOriginalFilename();
             try {
-                Files.copy(capa.getInputStream(), Paths.get(capasPath).resolve(nomeCapa), StandardCopyOption.REPLACE_EXISTING);
+                Path destinoNovaCapa = this.capasLocation.resolve(nomeNovaCapa);
+                Files.copy(capa.getInputStream(), destinoNovaCapa, StandardCopyOption.REPLACE_EXISTING);
+                livroAntigo.setCaminhoCapa(nomeNovaCapa);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Erro ao salvar a nova capa: " + nomeNovaCapa, e);
             }
-
-            livroAntigo.setCaminhoCapa(nomeCapa);
         }
 
         livroAntigo.setTitulo(titulo);
@@ -191,40 +214,85 @@ public class LivroService {
 
 
     public ResponseEntity<Livro> findById(long id){
-        return ResponseEntity.ok(livroRepository.findById(id).orElseThrow(() -> new RuntimeException("Não existe um livro com esse id")));
+        Livro livro = livroRepository.findById(id).orElseThrow(() -> new RuntimeException("Não existe um livro com esse id"));
+        return ResponseEntity.ok(livro);
     }
 
     public Livro findByTitulo(String titulo){
-        return livroRepository.findByTitulo(titulo);
+        Livro livro = livroRepository.findByTitulo(titulo);
+        if (livro == null) {
+            // Você pode querer lançar uma exceção aqui se o livro não for encontrado,
+            // dependendo de como o controller que chama este método espera lidar com isso.
+            // Por exemplo: throw new RuntimeException("Livro com título '" + titulo + "' não encontrado.");
+            // Ou simplesmente retornar null e deixar o controller tratar.
+        }
+        return livro;
     }
 
     public ResponseEntity<List<Livro>> findAll(){
-        return ResponseEntity.ok(livroRepository.findAll());
+        List<Livro> livros = livroRepository.findAll();
+        return ResponseEntity.ok(livros);
     }
+
 
     public Resource downloadByName(String titulo) throws MalformedURLException {
         Livro livro = livroRepository.findByTitulo(titulo);
+        if (livro == null || livro.getCaminhoArquivo() == null || livro.getCaminhoArquivo().isEmpty()) {
+            throw new RuntimeException("Arquivo PDF não encontrado para o livro: " + titulo);
+        }
 
-        Path caminhoArquivo = rootLocation.resolve(livro.getCaminhoArquivo());
+        Path caminhoArquivo = this.rootLocation.resolve(livro.getCaminhoArquivo()).normalize();
         Resource resource = new UrlResource(caminhoArquivo.toUri());
 
         if (!resource.exists() || !resource.isReadable()) {
-            throw new RuntimeException("Arquivo não encontrado ou não pode ser lido");
+            throw new RuntimeException("Arquivo PDF não encontrado ou não pode ser lido: " + livro.getCaminhoArquivo());
         }
-
         return resource;
     }
 
-    public void deletarLivroByTitulo(String titulo){
+    // --- NOVO MÉTODO PARA CARREGAR A CAPA COMO RESOURCE ---
+    public Resource carregarCapaComoResource(String titulo) throws MalformedURLException {
         Livro livro = livroRepository.findByTitulo(titulo);
+
+        if (livro == null) {
+            // Log ou throw: Livro com título '{}' não encontrado , titulo
+            throw new RuntimeException("Livro não encontrado com o título: " + titulo);
+        }
+
+        if (livro.getCaminhoCapa() == null || livro.getCaminhoCapa().isEmpty()) {
+            // Log ou throw: Livro '{}' não possui caminho de capa definido , titulo
+            throw new RuntimeException("Capa não definida para o livro: " + titulo);
+        }
+
+        try {
+            Path caminhoCapa = this.capasLocation.resolve(livro.getCaminhoCapa()).normalize();
+            Resource resource = new UrlResource(caminhoCapa.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                // Log: Recurso da capa não existe ou não é legível em: {} , caminhoCapa.toString()
+                throw new RuntimeException("Capa não encontrada ou não pode ser lida: " + livro.getCaminhoCapa());
+            }
+        } catch (MalformedURLException e) {
+            // Log: URL malformada para a capa '{}' do livro '{}': {} , livro.getCaminhoCapa(), titulo, e.getMessage()
+            throw new RuntimeException("Erro ao carregar a capa (URL malformada): " + livro.getCaminhoCapa(), e);
+        }
+    }
+
+
+    public void deletarLivroByTitulo(String titulo){ // Este método parece não estar sendo usado pelo controller
+        Livro livro = livroRepository.findByTitulo(titulo);
+        if (livro == null) {
+            throw new RuntimeException("Livro com título '" + titulo + "' não encontrado para deleção.");
+        }
         Path caminho = rootLocation.resolve(livro.getCaminhoArquivo());
         try{
             Files.deleteIfExists(caminho);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Erro ao deletar arquivo PDF: " + livro.getCaminhoArquivo(), e);
         }
 
         livroRepository.deleteById(livro.getId());
     }
-
 }

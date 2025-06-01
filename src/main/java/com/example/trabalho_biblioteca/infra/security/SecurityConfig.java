@@ -35,7 +35,11 @@ public class SecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
-            .anyRequest().authenticated()
+            .requestMatchers(HttpMethod.GET, "/api/livro/download/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/livro/capa/**").permitAll()
+
+
+                .anyRequest().authenticated()
         )
         .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
