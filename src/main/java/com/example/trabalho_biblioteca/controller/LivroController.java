@@ -73,4 +73,9 @@ public ResponseEntity<Livro> atualizarLivro(
     public void deleteLivro(@PathVariable Long id){
         livroService.deletarLivro(id);
     }
+
+    @GetMapping("/pesquisar/{titulo}")
+    public ResponseEntity<Livro> pesquisarPorTitulo(@PathVariable("titulo") String titulo){
+        return livroService.findByTituloPesquisa(titulo);
+    }
 }

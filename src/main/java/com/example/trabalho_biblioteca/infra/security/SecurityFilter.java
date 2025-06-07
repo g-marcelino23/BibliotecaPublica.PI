@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -22,13 +23,16 @@ public class SecurityFilter extends OncePerRequestFilter {
     TokenService tokenService;
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    CustomUserDetailsService customUserDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
         var login = tokenService.validateToken(token);
         String header = request.getHeader("Authorization");
-        System.out.println("Authorization Header: " + header);
+        System.out.println("login: "+ login);
+        //System.out.println("Authorization Header: " + header);
 
         if(header == null || !header.startsWith("Bearer ")) {
             System.out.println("Token não encontrado ou mal formatado");
@@ -40,10 +44,18 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         if(login != null){
             User user = userRepository.findByEmail(login).orElseThrow(() -> new RuntimeException("User Not Found"));
-            var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
-            var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
+            UserDetailsImpl userDetails1 = (UserDetailsImpl) customUserDetailsService.loadUserByUsername(user.getEmail());
+            var authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole()));
+            var authentication = new UsernamePasswordAuthenticationToken(userDetails1, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            Authentication authentication1 = SecurityContextHolder.getContext().getAuthentication();
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication1.getPrincipal();
+            System.out.println(userDetails.getUser().toString());
+            System.out.println("Authorities: " + authorities);
+
         }
+
+
         filterChain.doFilter(request, response);
     }
 

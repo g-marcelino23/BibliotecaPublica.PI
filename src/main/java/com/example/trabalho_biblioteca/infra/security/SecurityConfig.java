@@ -1,5 +1,6 @@
 package com.example.trabalho_biblioteca.infra.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,9 +37,19 @@ public class SecurityConfig {
                 .requestMatchers("/h2-console/**").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                .requestMatchers("/api/livro/cadastrar").hasRole("ADMIN")
             .anyRequest().authenticated()
-        )
-        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+        ).headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                )
+        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"error\": \"Acesso negado - sem permissão.\"}");
+                        })
+                );
         return http.build();
     }
 

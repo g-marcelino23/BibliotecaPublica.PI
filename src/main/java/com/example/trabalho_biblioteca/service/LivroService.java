@@ -227,4 +227,12 @@ public class LivroService {
         livroRepository.deleteById(livro.getId());
     }
 
+    public ResponseEntity<Livro> findByTituloPesquisa(String titulo){
+        Livro livro = livroRepository.findByTitulo(titulo);
+        if(livro == null){
+            throw new RuntimeException("o livro é nulo");
+        }
+        return ResponseEntity.ok().body(livroRepository.findByTitulo(titulo));
+    }
+
 }
