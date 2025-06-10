@@ -97,7 +97,7 @@ public class LivroService {
         }
 
 
-    
+
         // Criando o objeto Livro e atribuindo as informações
         Livro livro = new Livro();
         livro.setTitulo(titulo);
@@ -142,12 +142,7 @@ public class LivroService {
         return "Livro de id = " + id + " foi deletado!";
     }
 
-    public ResponseEntity<Livro> atualizarLivro(@RequestParam(value = "pdf", required = false) MultipartFile pdf,
-                                                @RequestParam(value = "capa", required = false) MultipartFile capa,
-                                                @RequestParam("titulo") String titulo,
-                                                @RequestParam("autor") String autor,
-                                                @RequestParam("descricao") String descricao,
-                                                @PathVariable Long id) {
+    public ResponseEntity<Livro> atualizarLivro(MultipartFile pdf, MultipartFile capa, String titulo, String autor, String descricao, Long id) {
         Livro livroAntigo = livroRepository.findById(id).orElseThrow(() -> new RuntimeException("Não existe livro com o id passado"));
 
         // Atualiza o arquivo PDF se um novo foi enviado

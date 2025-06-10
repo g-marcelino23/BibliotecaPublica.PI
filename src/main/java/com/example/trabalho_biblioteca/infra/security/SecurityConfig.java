@@ -30,19 +30,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(Customizer.withDefaults())
-        .csrf(csrf -> csrf.disable())
-        .cors(cors -> {})  // habilita CORS com base na CorsConfig
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/h2-console/**").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
-                .requestMatchers("/api/livro/cadastrar").hasRole("ADMIN")
-            .anyRequest().authenticated()
-        ).headers(headers -> headers
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> {})  // habilita CORS com base na CorsConfig
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                        .requestMatchers("/api/livro/cadastrar").hasRole("ADMIN")
+                        .requestMatchers("/api/livro/deletar/**").hasRole("ADMIN")
+                        .requestMatchers("/api/livro/alterar/**").hasRole("ADMIN")
+                        .anyRequest().authenticated()
+                ).headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
-        .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exception -> exception
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
