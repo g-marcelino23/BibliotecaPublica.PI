@@ -34,7 +34,7 @@ public class UserController {
     }
 
     @GetMapping("comparar-senhas/{senhaDigitada}/email/{email}")
-    public String compararSenhas(@PathVariable String senhaDigitada,@PathVariable String email){
+    public Boolean compararSenhas(@PathVariable String senhaDigitada,@PathVariable String email){
         return userService.compararSenhas(senhaDigitada, email);
     }
 }

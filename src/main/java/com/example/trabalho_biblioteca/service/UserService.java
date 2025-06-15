@@ -50,11 +50,11 @@ public class UserService {
 
     }
 
-    public String compararSenhas(String senhaDigitada, String email){
+    public boolean compararSenhas(String senhaDigitada, String email){
         User user = userRepository.findByEmail(email).orElseThrow(()-> new RuntimeException("user not found"));
         if(encoder.matches(senhaDigitada, user.getPassword())){
-            return "senhas iguais";
+            return true;
         }
-        return "senhas diferentes";
+        return false;
     }
 }
