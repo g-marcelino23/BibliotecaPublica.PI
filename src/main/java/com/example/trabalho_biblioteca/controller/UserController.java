@@ -32,4 +32,9 @@ public class UserController {
     public UserDTO alterarUser(@RequestBody UpdateUserDTO updateUserDTO,@PathVariable String email){
         return userService.updateUser(updateUserDTO, email);
     }
+
+    @GetMapping("comparar-senhas/{senhaDigitada}/email/{email}")
+    public String compararSenhas(@PathVariable String senhaDigitada,@PathVariable String email){
+        return userService.compararSenhas(senhaDigitada, email);
+    }
 }
