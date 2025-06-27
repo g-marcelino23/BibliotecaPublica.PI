@@ -2,6 +2,7 @@ package com.example.trabalho_biblioteca.service;
 
 import com.example.trabalho_biblioteca.dto.UpdateUserDTO;
 import com.example.trabalho_biblioteca.dto.UserDTO;
+import com.example.trabalho_biblioteca.infra.security.TokenService;
 import com.example.trabalho_biblioteca.model.User;
 import com.example.trabalho_biblioteca.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
     BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    @Autowired
+    TokenService tokenService;
 
     public UserDTO recuperarPorEmail(String email){
         User userRecuperado = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("user not found"));
@@ -32,7 +35,7 @@ public class UserService {
         return "usuário apagado com sucesso!";
     }
 
-    public UserDTO updateUser(UpdateUserDTO updateUserDTO, String email){
+    public String updateUser(UpdateUserDTO updateUserDTO, String email){
         User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("user not found"));
 
         if(updateUserDTO.newEmail() != null){
@@ -46,7 +49,7 @@ public class UserService {
             user.setPassword(novaSenha);
         }
         userRepository.save(user);
-        return new UserDTO(user.getName(), user.getEmail());
+        return tokenService.generateToken(user);
 
     }
 

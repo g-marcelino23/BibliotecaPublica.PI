@@ -29,7 +29,7 @@ public class UserController {
     }
 
     @PutMapping("{email}")
-    public UserDTO alterarUser(@RequestBody UpdateUserDTO updateUserDTO,@PathVariable String email){
+    public String alterarUser(@RequestBody UpdateUserDTO updateUserDTO,@PathVariable String email){
         return userService.updateUser(updateUserDTO, email);
     }
 

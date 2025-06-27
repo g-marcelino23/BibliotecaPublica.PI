@@ -31,27 +31,25 @@ public class SecurityFilter extends OncePerRequestFilter {
         var token = this.recoverToken(request);
         var login = tokenService.validateToken(token);
         String header = request.getHeader("Authorization");
-        System.out.println("login: "+ login);
+        //System.out.println("login: "+ login);
         //System.out.println("Authorization Header: " + header);
 
         if(header == null || !header.startsWith("Bearer ")) {
-            System.out.println("Token não encontrado ou mal formatado");
+            //System.out.println("Token não encontrado ou mal formatado");
         } else {
             String token1 = header.substring(7);
-            System.out.println("Token extraído: " + token1);
+            //System.out.println("Token extraído: " + token1);
+            //System.out.println("variável token: "+token);
+
             // Aqui você pode tentar validar o token e logar sucesso/falha
         }
 
         if(login != null){
             User user = userRepository.findByEmail(login).orElseThrow(() -> new RuntimeException("User Not Found"));
-            UserDetailsImpl userDetails1 = (UserDetailsImpl) customUserDetailsService.loadUserByUsername(user.getEmail());
+            UserDetailsImpl userDetails = (UserDetailsImpl) customUserDetailsService.loadUserByUsername(user.getEmail());
             var authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole()));
-            var authentication = new UsernamePasswordAuthenticationToken(userDetails1, null, authorities);
+            var authentication = new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            Authentication authentication1 = SecurityContextHolder.getContext().getAuthentication();
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication1.getPrincipal();
-            System.out.println(userDetails.getUser().toString());
-            System.out.println("Authorities: " + authorities);
 
         }
 
