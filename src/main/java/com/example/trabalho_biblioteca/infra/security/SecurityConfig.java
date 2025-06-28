@@ -39,6 +39,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/livro/capa/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/livro/download/**").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
                         .requestMatchers("/api/livro/cadastrar").hasRole("ADMIN")
                         .requestMatchers("/api/livro/deletar/**").hasRole("ADMIN")
                         .requestMatchers("/api/livro/alterar/**").hasRole("ADMIN")
