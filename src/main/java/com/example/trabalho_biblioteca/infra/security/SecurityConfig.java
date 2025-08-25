@@ -1,6 +1,5 @@
 package com.example.trabalho_biblioteca.infra.security;
 
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +9,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,46 +20,40 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Autowired
-    private CustomUserDetailsService userDetailsService;
-
-    @Autowired
     SecurityFilter securityFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
+        http
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> {})  // habilita CORS com base na CorsConfig
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/h2-console/**").permitAll()
+                        // 1. Rotas Públicas (permitAll)
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/livro/capa/**").permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/livro/download/**").permitAll()
-                        .requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/livro/all").permitAll() // <-- Rota para listar todos os livros
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                        // 2. Rotas de ADMIN (hasRole)
                         .requestMatchers("/api/livro/cadastrar").hasRole("ADMIN")
                         .requestMatchers("/api/livro/deletar/**").hasRole("ADMIN")
                         .requestMatchers("/api/livro/alterar/**").hasRole("ADMIN")
+
+                        // 3. Rota de Favoritos (Regra simplificada)
+                        // A regra abaixo já cobre GET, POST, DELETE, etc. para /api/livro/favoritos/**
+                        .requestMatchers("/api/livro/favoritos/**").authenticated()
+
+                        // 4. Todas as outras rotas exigem autenticação
                         .anyRequest().authenticated()
-                ).headers(headers -> headers
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling(exception -> exception
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"error\": \"Acesso negado - sem permissão.\"}");
-                        })
-                );
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
+
+        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
+
         return http.build();
     }
 

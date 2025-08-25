@@ -1,24 +1,26 @@
+// Local: com/example/trabalho_biblioteca/service/UserService.java
+
 package com.example.trabalho_biblioteca.service;
 
 import com.example.trabalho_biblioteca.dto.UpdateUserDTO;
 import com.example.trabalho_biblioteca.dto.UserDTO;
 import com.example.trabalho_biblioteca.infra.security.TokenService;
+import com.example.trabalho_biblioteca.infra.security.UserDetailsImpl;
 import com.example.trabalho_biblioteca.model.User;
 import com.example.trabalho_biblioteca.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 public class UserService {
     @Autowired
     UserRepository userRepository;
+
     BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
     @Autowired
     TokenService tokenService;
 
@@ -63,5 +65,22 @@ public class UserService {
             return true;
         }
         return false;
+    }
+
+
+    public User getUsuarioLogado() {
+        // Pega a autenticação do usuário que foi validada pelo SecurityFilter
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("Nenhum usuário autenticado encontrado.");
+        }
+
+        // Pega os detalhes do usuário a partir do principal da autenticação
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String userEmail = userDetails.getUser().getEmail(); // O getUsername() aqui retorna o email
+       
+        // Busca o usuário completo no banco de dados com o email do token
+        return userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("Usuário com email '" + userEmail + "' não encontrado no banco de dados!"));
     }
 }
