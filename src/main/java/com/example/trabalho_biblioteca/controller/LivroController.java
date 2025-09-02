@@ -1,6 +1,7 @@
 package com.example.trabalho_biblioteca.controller;
 
 import com.example.trabalho_biblioteca.dto.LivroDTO; // Parece não estar sendo usado, pode ser removido se for o caso.
+import com.example.trabalho_biblioteca.model.Categoria;
 import com.example.trabalho_biblioteca.model.Livro;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -25,8 +26,8 @@ public class LivroController {
     LivroService livroService;
 
     @PostMapping("/cadastrar")
-    public Livro postLivro( @RequestParam("descricao") String descricao,@RequestParam("titulo") String titulo, @RequestParam("autor") String autor, @RequestParam("pdf") MultipartFile file, @RequestParam("capa") MultipartFile capa) {
-        return livroService.salvarLivro(file, capa, autor, titulo, descricao);
+    public Livro postLivro( @RequestParam("descricao") String descricao,@RequestParam("titulo") String titulo, @RequestParam("autor") String autor, @RequestParam("pdf") MultipartFile file, @RequestParam("capa") MultipartFile capa, @RequestParam("categoria") String nomeCategoria) {
+        return livroService.salvarLivro(file, capa, autor, titulo, descricao, nomeCategoria);
     }
 
     @PutMapping("/alterar/{id}")
@@ -36,8 +37,9 @@ public class LivroController {
             @RequestParam("titulo") String titulo,
             @RequestParam("autor") String autor,
             @RequestParam("descricao") String descricao,
+            @RequestParam("categoria") String categoria,
             @PathVariable Long id) {
-        return livroService.atualizarLivro(pdf, capa, titulo, autor, descricao, id);
+        return livroService.atualizarLivro(pdf, capa, titulo, autor, descricao, id, categoria);
     }
 
     @GetMapping("/byId/{id}")

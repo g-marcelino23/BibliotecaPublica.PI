@@ -19,6 +19,10 @@ public class Livro {
     @Column(name = "caminho_capa",nullable = false)
     private String caminhoCapa;
 
+    @ManyToOne
+    @JoinColumn(name = "categoria_id")
+    private Categoria categoria;
+
     public Livro(){}
 
     public Livro(String titulo, String autor, String descricao, String caminhoArquivo) {
@@ -74,5 +78,12 @@ public class Livro {
 
     public void setCaminhoCapa(String caminhoCapa) {
         this.caminhoCapa = caminhoCapa;
+    }
+    public Categoria getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(Categoria categoria) {
+        this.categoria = categoria;
     }
 }

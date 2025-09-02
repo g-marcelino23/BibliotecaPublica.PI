@@ -1,13 +1,17 @@
 package com.example.trabalho_biblioteca.service;
 
 // Adicione estas importações:
+import com.example.trabalho_biblioteca.model.Categoria;
 import com.example.trabalho_biblioteca.model.Livro; // Para a classe Livro
+import com.example.trabalho_biblioteca.repository.CategoriaRepository;
 import com.example.trabalho_biblioteca.repository.LivroRepository; // Para LivroRepository
 import jakarta.annotation.PostConstruct; // Para @PostConstruct
 import org.springframework.beans.factory.annotation.Autowired; // Para @Autowired
 import org.springframework.beans.factory.annotation.Value; // Para @Value
 import org.springframework.core.io.Resource; // Para Resource
 import org.springframework.core.io.UrlResource; // Para UrlResource
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity; // Para ResponseEntity
 import org.springframework.stereotype.Service; // Para @Service
 import org.springframework.web.bind.annotation.PathVariable; // Para @PathVariable (se usado no service, senão remova)
@@ -28,6 +32,9 @@ import java.util.UUID; // Para UUID
 public class LivroService {
     @Autowired
     LivroRepository livroRepository;
+
+    @Autowired
+    CategoriaRepository categoriaRepository;
 
     @Value("${storage.pdf.path}")
     private String storagePath;
@@ -50,7 +57,7 @@ public class LivroService {
         }
     }
 
-    public Livro salvarLivro(MultipartFile file, MultipartFile capa, String autor, String titulo, String descricao) {
+    public Livro salvarLivro(MultipartFile file, MultipartFile capa, String autor, String titulo, String descricao, String nomeCategoria) {
         // Verificando se o arquivo é um PDF
         String tipoArquivo = file.getContentType();
         if (!"application/pdf".equals(tipoArquivo)) {
@@ -104,7 +111,10 @@ public class LivroService {
         livro.setAutor(autor);
         livro.setDescricao(descricao);
         livro.setCaminhoArquivo(nomeArquivoPdf);  // Salvando o nome do arquivo PDF no banco
-        livro.setCaminhoCapa(nomeArquivoCapa); // Salvando o nome do arquivo da capa no banco
+        livro.setCaminhoCapa(nomeArquivoCapa);
+        Categoria categoria = categoriaRepository.findByGeneroIgnoreCase(nomeCategoria);
+        livro.setCategoria(categoria);
+        // Salvando o nome do arquivo da capa no banco
 
         // Salvando o livro no repositório
         livroRepository.save(livro);
@@ -142,7 +152,7 @@ public class LivroService {
         return "Livro de id = " + id + " foi deletado!";
     }
 
-    public ResponseEntity<Livro> atualizarLivro(MultipartFile pdf, MultipartFile capa, String titulo, String autor, String descricao, Long id) {
+    public ResponseEntity<Livro> atualizarLivro(MultipartFile pdf, MultipartFile capa, String titulo, String autor, String descricao, Long id, String categoria) {
         Livro livroAntigo = livroRepository.findById(id).orElseThrow(() -> new RuntimeException("Não existe livro com o id passado"));
 
         // Atualiza o arquivo PDF se um novo foi enviado
@@ -202,9 +212,14 @@ public class LivroService {
             }
         }
 
+        //recuperando a categoria
+        Categoria cat = categoriaRepository.findByGeneroIgnoreCase(categoria);
+
         livroAntigo.setTitulo(titulo);
         livroAntigo.setAutor(autor);
         livroAntigo.setDescricao(descricao);
+        livroAntigo.setCategoria(cat);
+
 
         return ResponseEntity.ok(livroRepository.save(livroAntigo));
     }
@@ -300,6 +315,15 @@ public class LivroService {
             throw new RuntimeException("o livro é nulo");
         }
         return ResponseEntity.ok().body(livroRepository.findByTitulo(titulo));
+    }
+
+    public List<Livro> getLivrosByIdCategoria(long idCategoria){
+        return livroRepository.findByCategoriaId(idCategoria);
+    }
+
+    public Page<Livro> getLivrosPaginationCategoria(Long idCategoria, int page){
+        PageRequest pageRequest = PageRequest.of(page, 5);
+        return livroRepository.getLivrosByCategoria(idCategoria, pageRequest);
     }
 
 }
