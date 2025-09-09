@@ -1,5 +1,6 @@
 package com.example.trabalho_biblioteca.controller;
 
+import com.example.trabalho_biblioteca.dto.RegisterRequestDTO;
 import com.example.trabalho_biblioteca.dto.UpdateUserDTO;
 import com.example.trabalho_biblioteca.dto.UserDTO;
 import com.example.trabalho_biblioteca.service.UserService;
@@ -13,9 +14,17 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     @Autowired
     UserService userService;
+
     @GetMapping
     public ResponseEntity<String> getUser(){
         return ResponseEntity.ok("sucesso!");
+    }
+
+    // Novo endpoint de cadastro de usuário
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody RegisterRequestDTO registerRequestDTO){
+        userService.registerUser(registerRequestDTO);
+        return ResponseEntity.ok("Usuário registrado com sucesso!");
     }
 
     @GetMapping("/recuperar/{email}")
@@ -29,12 +38,12 @@ public class UserController {
     }
 
     @PutMapping("{email}")
-    public String alterarUser(@RequestBody UpdateUserDTO updateUserDTO,@PathVariable String email){
+    public String alterarUser(@RequestBody UpdateUserDTO updateUserDTO, @PathVariable String email){
         return userService.updateUser(updateUserDTO, email);
     }
 
     @GetMapping("comparar-senhas/{senhaDigitada}/email/{email}")
-    public Boolean compararSenhas(@PathVariable String senhaDigitada,@PathVariable String email){
+    public Boolean compararSenhas(@PathVariable String senhaDigitada, @PathVariable String email){
         return userService.compararSenhas(senhaDigitada, email);
     }
 }

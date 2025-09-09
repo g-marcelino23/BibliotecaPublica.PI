@@ -18,42 +18,37 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
     @Autowired
     SecurityFilter securityFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
-                        // 1. Rotas Públicas (permitAll)
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/livro/capa/**").permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/livro/download/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/livro/all").permitAll() // <-- Rota para listar todos os livros
-                        .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-
-                        // 2. Rotas de ADMIN (hasRole)
-                        .requestMatchers("/api/livro/cadastrar").hasRole("ADMIN")
-                        .requestMatchers("/api/livro/deletar/**").hasRole("ADMIN")
-                        .requestMatchers("/api/livro/alterar/**").hasRole("ADMIN")
-
-                        // 3. Rota de Favoritos (Regra simplificada)
-                        // A regra abaixo já cobre GET, POST, DELETE, etc. para /api/livro/favoritos/**
-                        .requestMatchers("/api/livro/favoritos/**").authenticated()
-
-                        // 4. Todas as outras rotas exigem autenticação
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
-
+            .cors(Customizer.withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authorize -> authorize
+                    // 1. Rotas Públicas (permitAll)
+                    .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                    .requestMatchers(HttpMethod.GET,"/api/livro/capa/**").permitAll()
+                    .requestMatchers(HttpMethod.GET,"/api/livro/download/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/livro/all").permitAll()
+                    .requestMatchers("/h2-console/**").permitAll()
+                    .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                    // 2. Rotas de ADMIN (hasRole)
+                    .requestMatchers("/api/livro/cadastrar").hasRole("ADMIN")
+                    .requestMatchers("/api/livro/deletar/**").hasRole("ADMIN")
+                    .requestMatchers("/api/livro/alterar/**").hasRole("ADMIN")
+                    // 3. Rota de Favoritos (Regra simplificada)
+                    .requestMatchers("/api/livro/favoritos/**").authenticated()
+                    // 4. Rota de livros permitidos por idade
+                    .requestMatchers(HttpMethod.GET, "/api/livro/permitidos").permitAll()
+                    // 5. Todas as outras rotas exigem autenticação
+                    .anyRequest().authenticated()
+            )
+            .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
         http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
-
         return http.build();
     }
 

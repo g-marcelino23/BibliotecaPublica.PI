@@ -3,6 +3,8 @@ package com.example.trabalho_biblioteca.service;
 // Adicione estas importações:
 import com.example.trabalho_biblioteca.model.Categoria;
 import com.example.trabalho_biblioteca.model.Livro; // Para a classe Livro
+import com.example.trabalho_biblioteca.model.ClassificacaoIndicativa;
+import com.example.trabalho_biblioteca.model.User;
 import com.example.trabalho_biblioteca.repository.CategoriaRepository;
 import com.example.trabalho_biblioteca.repository.LivroRepository; // Para LivroRepository
 import jakarta.annotation.PostConstruct; // Para @PostConstruct
@@ -27,6 +29,10 @@ import java.nio.file.Paths; // Para a classe Paths
 import java.nio.file.StandardCopyOption; // Para StandardCopyOption
 import java.util.List; // Para List
 import java.util.UUID; // Para UUID
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.stream.Collectors;
+
 
 @Service
 public class LivroService {
@@ -57,7 +63,7 @@ public class LivroService {
         }
     }
 
-    public Livro salvarLivro(MultipartFile file, MultipartFile capa, String autor, String titulo, String descricao, String nomeCategoria) {
+    public Livro salvarLivro(MultipartFile file, MultipartFile capa, String autor, String titulo, String descricao, String nomeCategoria, ClassificacaoIndicativa classificacaoIndicativa) {
         // Verificando se o arquivo é um PDF
         String tipoArquivo = file.getContentType();
         if (!"application/pdf".equals(tipoArquivo)) {
@@ -114,7 +120,8 @@ public class LivroService {
         livro.setCaminhoCapa(nomeArquivoCapa);
         Categoria categoria = categoriaRepository.findByGeneroIgnoreCase(nomeCategoria);
         livro.setCategoria(categoria);
-        // Salvando o nome do arquivo da capa no banco
+        livro.setClassificacaoIndicativa(classificacaoIndicativa);
+
 
         // Salvando o livro no repositório
         livroRepository.save(livro);
@@ -152,7 +159,7 @@ public class LivroService {
         return "Livro de id = " + id + " foi deletado!";
     }
 
-    public ResponseEntity<Livro> atualizarLivro(MultipartFile pdf, MultipartFile capa, String titulo, String autor, String descricao, Long id, String categoria) {
+    public ResponseEntity<Livro> atualizarLivro(MultipartFile pdf, MultipartFile capa, String titulo, String autor, String descricao, Long id, String categoria, ClassificacaoIndicativa classificacaoIndicativa) {
         Livro livroAntigo = livroRepository.findById(id).orElseThrow(() -> new RuntimeException("Não existe livro com o id passado"));
 
         // Atualiza o arquivo PDF se um novo foi enviado
@@ -219,7 +226,8 @@ public class LivroService {
         livroAntigo.setAutor(autor);
         livroAntigo.setDescricao(descricao);
         livroAntigo.setCategoria(cat);
-
+        livroAntigo.setClassificacaoIndicativa(classificacaoIndicativa);
+        
 
         return ResponseEntity.ok(livroRepository.save(livroAntigo));
     }
@@ -241,9 +249,30 @@ public class LivroService {
         return livro;
     }
 
-    public ResponseEntity<List<Livro>> findAll(){
-        List<Livro> livros = livroRepository.findAll();
-        return ResponseEntity.ok(livros);
+    @Autowired
+    private UserService userService; // ou injete como preferir
+
+    public ResponseEntity<List<Livro>> findAll() {
+        // Primeiro: BUSQUE o usuário logado
+        User usuario = userService.getUsuarioLogado(); // ou pegue conforme seu contexto
+
+        // Se usuário nulo, pode lançar exceção ou devolver vazio
+        if (usuario == null || usuario.getDataNascimento() == null) {
+            return ResponseEntity.badRequest().build(); // ou algum tratamento seu
+        }
+
+        // Calcula idade do usuário
+        int idade = calcularIdade(usuario.getDataNascimento(), LocalDate.now());
+
+        // Busca todos os livros
+        List<Livro> todosLivros = livroRepository.findAll();
+
+        // Filtra livros de acordo com a classificação
+        List<Livro> permitidos = todosLivros.stream()
+            .filter(livro -> podeAcessarLivro(idade, livro.getClassificacaoIndicativa()))
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(permitidos);
     }
 
 
@@ -325,5 +354,39 @@ public class LivroService {
         PageRequest pageRequest = PageRequest.of(page, 5);
         return livroRepository.getLivrosByCategoria(idCategoria, pageRequest);
     }
+
+    public List<Livro> listarLivrosPermitidosParaUsuario(User usuario) {
+        int idade = calcularIdade(usuario.getDataNascimento(), LocalDate.now());
+        List<Livro> todosLivros = livroRepository.findAll();
+        return todosLivros.stream()
+                .filter(livro -> podeAcessarLivro(idade, livro.getClassificacaoIndicativa()))
+                .collect(Collectors.toList());
+    }
+
+    private int calcularIdade(LocalDate nascimento, LocalDate hoje) {
+        if (nascimento == null) return 0;
+        return Period.between(nascimento, hoje).getYears();
+    }
+
+    private boolean podeAcessarLivro(int idade, ClassificacaoIndicativa classificacao) {
+        // Se não tem classificação, libera. Se tem, avalia pela idade mínima:
+        if (classificacao == null) return true;
+        return idade >= classificacao.getIdadeMinima();
+    }
+
+    public int calcularIdadeHelper(LocalDate nascimento, LocalDate hoje) {
+        if (nascimento == null) return 0;
+        return java.time.Period.between(nascimento, hoje).getYears();
+    }
+
+    public boolean podeAcessarLivroHelper(int idade, com.example.trabalho_biblioteca.model.ClassificacaoIndicativa classificacao) {
+        if (classificacao == null) return true;
+        return idade >= classificacao.getIdadeMinima();
+    }
+
+    public User getUsuarioLogado() {
+        return userService.getUsuarioLogado();
+    }
+
 
 }

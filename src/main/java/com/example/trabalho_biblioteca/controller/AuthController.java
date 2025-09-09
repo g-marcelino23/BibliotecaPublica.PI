@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @RestController
@@ -45,12 +46,24 @@ public class AuthController {
             newUser.setPassword(passwordEncoder.encode(body.password()));
             newUser.setEmail(body.email());
             newUser.setName(body.name());
-            newUser.setRole("ROLE_"+body.role().toUpperCase());
-            this.repository.save(newUser);
+            newUser.setRole("ROLE_" + body.role().toUpperCase());
 
+            // TRATE A DATA DE NASCIMENTO!
+            if (body.dataNascimento() != null && !body.dataNascimento().isBlank()) {
+                // Se vier como String tipo "yyyy-MM-dd" do React
+                newUser.setDataNascimento(LocalDate.parse(body.dataNascimento()));
+                // Se vier como "dd/MM/yyyy", use:
+                // DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                // newUser.setDataNascimento(LocalDate.parse(body.dataNascimento(), formatter));
+            } else {
+                return ResponseEntity.badRequest().body("Data de nascimento obrigatória");
+            }
+
+            this.repository.save(newUser);
             String token = this.tokenService.generateToken(newUser);
             return ResponseEntity.ok(new ResponseDTO(newUser.getName(), token));
         }
         return ResponseEntity.badRequest().build();
     }
+
 }
