@@ -12,8 +12,8 @@ public class Livro {
     @Column(name = "titulo", length = 75, nullable = false)
     private String titulo;
 
-    @Column(name = "autor", length = 75, nullable = false)
-    private String autor;
+//    @Column(name = "autor", length = 75, nullable = false)
+//    private String autor;
 
     private String descricao;
 
@@ -27,6 +27,10 @@ public class Livro {
     @JoinColumn(name = "categoria_id")
     private Categoria categoria;
 
+    @ManyToOne
+    @JoinColumn(name = "autor_id")
+    private Autor autor;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "classificacao_indicativa", nullable = false, length = 10)
     private ClassificacaoIndicativa classificacaoIndicativa;
@@ -35,7 +39,6 @@ public class Livro {
 
     public Livro(String titulo, String autor, String descricao, String caminhoArquivo) {
         this.titulo = titulo;
-        this.autor = autor;
         this.descricao = descricao;
         this.caminhoArquivo = caminhoArquivo;
     }
@@ -48,17 +51,15 @@ public class Livro {
         this.classificacaoIndicativa = classificacaoIndicativa;
     }
 
+    public void setAutor(Autor autor){
+        this.autor = autor;
+    }
+    public Autor getAutor(){return this.autor;}
     public String getTitulo() {
         return titulo;
     }
     public void setTitulo(String titulo) {
         this.titulo = titulo;
-    }
-    public String getAutor() {
-        return autor;
-    }
-    public void setAutor(String autor) {
-        this.autor = autor;
     }
     public String getDescricao() {
         return descricao;

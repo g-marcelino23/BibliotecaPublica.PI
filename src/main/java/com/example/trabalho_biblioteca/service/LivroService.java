@@ -1,10 +1,7 @@
 package com.example.trabalho_biblioteca.service;
 
 // Adicione estas importações:
-import com.example.trabalho_biblioteca.model.Categoria;
-import com.example.trabalho_biblioteca.model.Livro; // Para a classe Livro
-import com.example.trabalho_biblioteca.model.ClassificacaoIndicativa;
-import com.example.trabalho_biblioteca.model.User;
+import com.example.trabalho_biblioteca.model.*;
 import com.example.trabalho_biblioteca.repository.CategoriaRepository;
 import com.example.trabalho_biblioteca.repository.LivroRepository; // Para LivroRepository
 import jakarta.annotation.PostConstruct; // Para @PostConstruct
@@ -41,6 +38,9 @@ public class LivroService {
 
     @Autowired
     CategoriaRepository categoriaRepository;
+
+    @Autowired
+    AutorService autorService;
 
     @Value("${storage.pdf.path}")
     private String storagePath;
@@ -110,11 +110,13 @@ public class LivroService {
         }
 
 
+        //recuperando autor
+        Autor autorRecuperado = autorService.findByNome(autor);
 
         // Criando o objeto Livro e atribuindo as informações
         Livro livro = new Livro();
         livro.setTitulo(titulo);
-        livro.setAutor(autor);
+        livro.setAutor(autorRecuperado);
         livro.setDescricao(descricao);
         livro.setCaminhoArquivo(nomeArquivoPdf);  // Salvando o nome do arquivo PDF no banco
         livro.setCaminhoCapa(nomeArquivoCapa);
@@ -222,8 +224,11 @@ public class LivroService {
         //recuperando a categoria
         Categoria cat = categoriaRepository.findByGeneroIgnoreCase(categoria);
 
+        //recuperando autor
+        Autor autorRecuperado = autorService.findByNome(autor);
+
         livroAntigo.setTitulo(titulo);
-        livroAntigo.setAutor(autor);
+        livroAntigo.setAutor(autorRecuperado);
         livroAntigo.setDescricao(descricao);
         livroAntigo.setCategoria(cat);
         livroAntigo.setClassificacaoIndicativa(classificacaoIndicativa);
@@ -388,5 +393,8 @@ public class LivroService {
         return userService.getUsuarioLogado();
     }
 
+    public List<Livro> getLivrosByAutor(String autor){
+        return livroRepository.getLivrosByAutor(autor);
+    }
 
 }

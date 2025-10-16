@@ -40,6 +40,8 @@ public class SecurityConfig {
                     .requestMatchers("/api/livro/cadastrar").hasRole("ADMIN")
                     .requestMatchers("/api/livro/deletar/**").hasRole("ADMIN")
                     .requestMatchers("/api/livro/alterar/**").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/autor").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/autor").hasRole("ADMIN")
                     // 3. Rota de Favoritos (Regra simplificada)
                     .requestMatchers("/api/livro/favoritos/**").authenticated()
                     // 4. Rota de livros permitidos por idade

@@ -88,7 +88,7 @@ public class LivroController {
         List<LivroDTO> dtos = permitidos.stream()
         .map(livro -> new LivroDTO(
             livro.getTitulo(),
-            livro.getAutor(),
+            livro.getAutor().getNome(),
             livro.getDescricao(),
             livro.getCategoria() != null ? livro.getCategoria().getGenero() : null,
             livro.getClassificacaoIndicativa() != null ? livro.getClassificacaoIndicativa().getDescricao() : null
@@ -149,5 +149,10 @@ public class LivroController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    @GetMapping("{nomeAutor}")
+    public ResponseEntity<List<Livro>> findLivrosByAutor(@PathVariable String nomeAutor){
+        return ResponseEntity.ok().body(livroService.getLivrosByAutor(nomeAutor));
     }
 }
