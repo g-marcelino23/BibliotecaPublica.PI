@@ -16,16 +16,26 @@ public class Autor {
 
     private String biografia;
 
+    private String caminhoCapa;
+
     public Autor() {
     }
 
 
 
-    public Autor(String nome, String biografia) {
+    public Autor(String nome, String biografia, String caminhoCapa) {
         this.nome = nome;
         this.biografia = biografia;
+        this.caminhoCapa = caminhoCapa;
     }
 
+    public String getCaminhoCapa() {
+        return caminhoCapa;
+    }
+
+    public void setCaminhoCapa(String caminhoCapa) {
+        this.caminhoCapa = caminhoCapa;
+    }
     public Long getId() {
         return id;
     }

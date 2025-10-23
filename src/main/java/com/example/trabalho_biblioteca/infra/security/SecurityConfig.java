@@ -32,6 +32,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
                     .requestMatchers(HttpMethod.GET,"/api/livro/capa/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/autor/capa/**").permitAll()
                     .requestMatchers(HttpMethod.GET,"/api/livro/download/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/livro/all").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
@@ -42,6 +43,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/livro/alterar/**").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.POST, "/api/autor").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.DELETE, "/api/autor").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "api/autor/**").hasRole("ADMIN")
                     // 3. Rota de Favoritos (Regra simplificada)
                     .requestMatchers("/api/livro/favoritos/**").authenticated()
                     // 4. Rota de livros permitidos por idade
