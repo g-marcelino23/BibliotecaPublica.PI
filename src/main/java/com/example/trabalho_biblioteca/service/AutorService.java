@@ -55,6 +55,16 @@ public class AutorService {
         //Gerando um nome único para a capa do livro
         String nomeArquivoCapa = UUID.randomUUID().toString() + "-" + capa.getOriginalFilename();
 
+        // --- INÍCIO DA CORREÇÃO ---
+        // Faltava salvar o arquivo da capa no disco (Files.copy)
+        try {
+            Path destinoNovaCapa = this.capasAutoresLocation.resolve(nomeArquivoCapa);
+            Files.copy(capa.getInputStream(), destinoNovaCapa, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao salvar a nova capa: " + nomeArquivoCapa, e);
+        }
+        // --- FIM DA CORREÇÃO ---
+
         Autor autor = new Autor();
         autor.setNome(nome);
         autor.setBiografia(biografia);
@@ -136,18 +146,17 @@ public class AutorService {
         return autorRepository.save(autor);
     }
 
-    // --- NOVO MÉTODO PARA CARREGAR A CAPA COMO RESOURCE ---
-    public Resource carregarCapaComoResource(String titulo) throws MalformedURLException {
-        Autor autor = autorRepository.findByNome(titulo);
+    // --- MÉTODO CORRIGIDO (parâmetro renomeado) ---
+    public Resource carregarCapaComoResource(String nome) throws MalformedURLException {
+        // O parâmetro 'nome' (antes 'titulo') é o NOME do autor
+        Autor autor = autorRepository.findByNome(nome);
 
         if (autor == null) {
-            // Log ou throw: Livro com título '{}' não encontrado , titulo
-            throw new RuntimeException("Livro não encontrado com o título: " + titulo);
+            throw new RuntimeException("Autor não encontrado com o nome: " + nome);
         }
 
         if (autor.getCaminhoCapa() == null || autor.getCaminhoCapa().isEmpty()) {
-            // Log ou throw: Livro '{}' não possui caminho de capa definido , titulo
-            throw new RuntimeException("Capa não definida para o livro: " + titulo);
+            throw new RuntimeException("Capa não definida para o autor: " + nome);
         }
 
         try {
@@ -157,11 +166,9 @@ public class AutorService {
             if (resource.exists() && resource.isReadable()) {
                 return resource;
             } else {
-                // Log: Recurso da capa não existe ou não é legível em: {} , caminhoCapa.toString()
                 throw new RuntimeException("Capa não encontrada ou não pode ser lida: " + autor.getCaminhoCapa());
             }
         } catch (MalformedURLException e) {
-            // Log: URL malformada para a capa '{}' do livro '{}': {} , livro.getCaminhoCapa(), titulo, e.getMessage()
             throw new RuntimeException("Erro ao carregar a capa (URL malformada): " + autor.getCaminhoCapa(), e);
         }
     }
