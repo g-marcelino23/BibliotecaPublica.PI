@@ -35,9 +35,13 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/autor/capa/**").permitAll()
                     .requestMatchers(HttpMethod.GET,"/api/livro/download/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/livro/all").permitAll()
-                    .requestMatchers("/api/busca-externa/**").permitAll() 
+                    .requestMatchers("/api/busca-externa/**").permitAll()
                     .requestMatchers("/h2-console/**").permitAll()
                     .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                    // >>> liberar IA local
+                    .requestMatchers("/api/ai/chat").permitAll()
+
                     // 2. Rotas de ADMIN (hasRole)
                     .requestMatchers("/api/livro/cadastrar").hasRole("ADMIN")
                     .requestMatchers("/api/livro/deletar/**").hasRole("ADMIN")
